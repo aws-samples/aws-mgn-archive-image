@@ -1,0 +1,82 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:CreateStoreImageTask",
+                "ec2:DescribeTags",
+                "ec2:DescribeSnapshots"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:CreateImage",
+                "ec2:DeleteImage",
+                "ec2:DeregisterImage",
+                "ec2:DescribeImages"
+            ],
+            "Resource": "arn:aws:ec2:us-east-1:327693094554:image/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ebs:ListSnapshotBlocks",
+                "ebs:GetSnapshotBlock"
+            ],
+            "Resource": "arn:aws:ec2:us-east-1:327693094554:snapshot/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:GetAutomationExecution",
+                "ssm:StartAutomationExecution"
+            ],
+            "Resource": "arn:aws:ssm:us-east-1:327693094554:automation-definition/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetBucketLocation"
+            ],
+            "Resource": [
+                "arn:aws:s3:::describelogssanket",
+                "arn:aws:s3:::describelogssanket/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::describelogssanket"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+                "ssm:GetParametersByPath"
+            ],
+            "Resource": "arn:aws:ssm:us-east-1:327693094554:parameter/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "kms:Decrypt",
+                "kms:GenerateDataKey"
+            ],
+            "Resource": [
+                "arn:aws:kms:*:327693094554:key/*"
+            ],
+            "Condition": {
+                "StringLike": {
+                    "kms:RequestAlias": [
+                        "alias/aws/ebs"
+                    ]
+                }
+            }
+        }
+    ]
+}
