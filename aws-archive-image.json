@@ -1,0 +1,68 @@
+{
+  "description": "Creates a new Amazon Machine Image (AMI) from an Amazon EC2 instance and store it on S3 bucket",
+  "schemaVersion": "0.3",
+  "assumeRole": "{{ AutomationAssumeRole }}",
+  "parameters": {
+    "InstanceId": {
+      "type": "String",
+      "description": "(Required) The ID of the Amazon EC2 instance."
+    },
+    "NoReboot": {
+      "type": "Boolean",
+      "description": "(Optional) Do not reboot the instance before creating the image.",
+      "default": false
+    },
+    "AutomationAssumeRole": {
+      "type": "String",
+      "description": "(Optional) The ARN of the role that allows Automation to perform the actions on your behalf. ",
+      "default": ""
+    },
+    "S3BucketPath": {
+      "type": "String",
+      "description": "S3 bucket path where you'd like to archive your image (for eg. myamibucket or myamibucket/path1/path2)",
+      "default": ""
+    }
+  },
+  "mainSteps": [
+    {
+      "name": "createImage",
+      "action": "aws:createImage",
+      "nextStep": "createStoreImageTask",
+      "isEnd": false,
+      "onFailure": "Abort",
+      "inputs": {
+        "InstanceId": "{{InstanceId}}",
+        "ImageName": "{{InstanceId}}_{{automation:EXECUTION_ID}}",
+        "NoReboot": "{{NoReboot}}"
+      }
+    },
+    {
+      "name": "createStoreImageTask",
+      "action": "aws:executeScript",
+      "nextStep": "handleImageDeletion",
+      "isEnd": false,
+      "inputs": {
+        "Runtime": "python3.8",
+        "Handler": "create_store_image_task",
+        "InputPayload": {
+          "ImageId": "{{createImage.ImageId}}",
+          "S3BucketPath": "{{S3BucketPath}}"
+        },
+        "Script": "def create_store_image_task(events,context):\n    import boto3\n    import time\n    client = boto3.client('ec2')\n    try:\n        client.create_store_image_task(ImageId=events['ImageId'],Bucket=events['S3BucketPath'])\n    except Exception as ERR:\n        print (f\" {ERR} \\n ERROR: Failed to create a store-image-task\")\n    "
+      }
+    },
+    {
+      "name": "handleImageDeletion",
+      "action": "aws:executeScript",
+      "isEnd": true,
+      "inputs": {
+        "Runtime": "python3.8",
+        "Handler": "handle_image_deletion",
+        "InputPayload": {
+          "ImageId": "{{createImage.ImageId}}"
+        },
+        "Script": "def handle_image_deletion(events, context):\n    import boto3\n    from botocore.exceptions import ClientError\n    \n    ec2 = boto3.client('ec2')\n    image_id = events['ImageId']\n    \n    try:\n        ec2.describe_images(ImageIds=[image_id])\n        try:\n            ec2.deregister_image(ImageId=image_id)\n            print(f\"Successfully deregistered image {image_id}\")\n        except ClientError as e:\n            print(f\"Error deregistering image: {e}\")\n    except ClientError as e:\n        if 'InvalidAMIID.NotFound' in str(e) or 'InvalidAMIID.Unavailable' in str(e):\n            print(f\"Image {image_id} is already deregistered or unavailable\")\n        else:\n            print(f\"Error checking image: {e}\")"
+      }
+    }
+  ]
+}
