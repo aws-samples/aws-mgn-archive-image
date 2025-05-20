@@ -20,7 +20,7 @@
                 "ebs:ListSnapshotBlocks",
                 "ebs:GetSnapshotBlock"
             ],
-            "Resource": "arn:aws:ec2:<Region>:<AWS-Account-ID>:snapshot/*"
+            "Resource": "arn:aws:ec2:<Region>::snapshot/*"
         },
         {
             "Effect": "Allow",
