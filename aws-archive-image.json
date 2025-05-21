@@ -14,7 +14,7 @@
     },
     "AutomationAssumeRole": {
       "type": "String",
-      "description": "(Optional) The ARN of the role that allows Automation to perform the actions on your behalf. ",
+      "description": "The ARN of the role that allows Automation to perform the actions on your behalf. ",
       "default": ""
     },
     "S3BucketPath": {
